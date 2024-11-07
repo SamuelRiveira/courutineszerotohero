@@ -7,10 +7,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import dev.samu.courutineszerotohero.ui.theme.CourutineszerotoheroTheme
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -22,24 +28,23 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        var retrofit = RetrofitHelper.getInstance()
-        var resultado: Response<SuperHeroDataResponse>? = null
-        lifecycleScope.launch(Dispatchers.IO){
-            resultado = retrofit.getSuperheroes("a")
-            withContext(Dispatchers.Main){
-                if(resultado.isSuccessful){
-                    Log.i("lista", "$resultado")
-                    Log.i("lista", "${resultado.body().toString()}")
-                }
-            }
-        }
         setContent {
             CourutineszerotoheroTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SuperHeroList(
-                        modifier = Modifier.padding(innerPadding),
-                        resultado
-                    )
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val users = remember { mutableStateOf<List<UserDataResponse>> }
+                    val retrofit = RetrofitHelper.getInstance()
+
+                    LaunchedEffect(Unit) {
+                        val response = retrofit.getUsers()
+                        if (response.isSuccessful) {
+                            users.value = response.body()
+                        } else {
+                            Log.i("Error", "Error al obtener datos")
+                        }
+                    }
+                    UsersList(users = users.value)
                 }
             }
         }
@@ -47,17 +52,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SuperHeroList(modifier: Modifier = Modifier, resultado: Response<SuperHeroDataResponse>?) {
-    if (resultado?.isSuccessful == true) {
-        resultado.body()?.let { superHeroe ->
-            superHeroe.results.forEach { hero ->
-                Text(text = hero.name)
-            }
-        }?: run {
-            println("No tengo nombre")
+fun UsersList(users: List<UserDataResponse>) {
+    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        items(users) { user ->
+            Text(
+                text = "${user.name} - ${user.email}",
+                modifier = Modifier.padding(8.dp)
+            )
         }
-    } else{
-        Text(text = "Error al cargar los datos")
     }
 }
 
