@@ -33,13 +33,13 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val users = remember { mutableStateOf<List<UserDataResponse>> }
+                    val users = remember { mutableStateOf<List<UserDataResponse>>(emptyList()) }
                     val retrofit = RetrofitHelper.getInstance()
 
                     LaunchedEffect(Unit) {
                         val response = retrofit.getUsers()
                         if (response.isSuccessful) {
-                            users.value = response.body()
+                            users.value = response.body() ?: emptyList()
                         } else {
                             Log.i("Error", "Error al obtener datos")
                         }
