@@ -28,18 +28,23 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val users = remember { mutableStateOf<List<UserDataResponse>>(emptyList()) }
+                    val users = remember { mutableStateOf<List<UserDataResponse>?>(null) }
                     val retrofit = RetrofitHelper.getInstance()
 
                     lifecycleScope.launch(Dispatchers.IO) {
                         val response = retrofit.getUsers()
                         if (response.isSuccessful) {
-                            users.value = response.body() ?: emptyList()
+                            users.value = response.body()
                         } else {
                             Log.i("Error", "Error al obtener datos")
                         }
                     }
-                    UsersList(users = users.value)
+
+                    users.value?.let {
+                        UsersList(users = it)
+                    } ?: run {
+                        Text("Cargando datos...")
+                    }
                 }
             }
         }
