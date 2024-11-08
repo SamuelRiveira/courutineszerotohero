@@ -12,8 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     val users = remember { mutableStateOf<List<UserDataResponse>>(emptyList()) }
                     val retrofit = RetrofitHelper.getInstance()
 
-                    LaunchedEffect(Unit) {
+                    lifecycleScope.launch(Dispatchers.IO) {
                         val response = retrofit.getUsers()
                         if (response.isSuccessful) {
                             users.value = response.body() ?: emptyList()
